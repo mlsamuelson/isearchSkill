@@ -1,0 +1,12 @@
+iSearchIntentPeopleFirst to search {firstName} {lastName}
+iSearchIntentPeopleFirst search {firstName} {lastName}
+iSearchIntentPeopleFirst to look up {firstName} {lastName}
+iSearchIntentPeopleFirst look up {firstName} {lastName}
+iSearchIntentPeopleFirst to find {firstName} {lastName}
+iSearchIntentPeopleFirst find {firstName} {lastName}
+iSearchIntentPeopleNext alright
+iSearchIntentPeopleNext sure
+iSearchIntentPeopleNext yes please
+iSearchIntentPeopleNext yeah
+iSearchIntentPeopleNext yup
+iSearchIntentPeopleNext yes

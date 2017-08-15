@@ -1,0 +1,91 @@
+{
+  "intents": [
+    {
+      "name": "AMAZON.CancelIntent",
+      "samples": [
+        "quit"
+      ]
+    },
+    {
+      "name": "AMAZON.HelpIntent",
+      "samples": []
+    },
+    {
+      "name": "AMAZON.StopIntent",
+      "samples": [
+        "no"
+      ]
+    },
+    {
+      "name": "iSearchIntentPeopleFirst",
+      "samples": [
+        "find {firstName} {lastName}",
+        "to find {firstName} {lastName}",
+        "look up {firstName} {lastName}",
+        "to look up {firstName} {lastName}",
+        "search {firstName} {lastName}",
+        "to search {firstName} {lastName}"
+      ],
+      "slots": [
+        {
+          "name": "firstName",
+          "type": "AMAZON.US_FIRST_NAME",
+          "samples": []
+        },
+        {
+          "name": "lastName",
+          "type": "LAST_NAME",
+          "samples": []
+        }
+      ]
+    },
+    {
+      "name": "iSearchIntentPeopleNext",
+      "samples": [
+        "yes",
+        "yup",
+        "yeah",
+        "yes please",
+        "ok",
+        "sure",
+        "alright"
+      ],
+      "slots": []
+    }
+  ],
+  "types": [
+    {
+      "name": "LAST_NAME",
+      "values": [
+        {
+          "id": null,
+          "name": {
+            "value": "Crow",
+            "synonyms": []
+          }
+        },
+        {
+          "id": null,
+          "name": {
+            "value": "Jones",
+            "synonyms": []
+          }
+        },
+        {
+          "id": null,
+          "name": {
+            "value": "Smith",
+            "synonyms": []
+          }
+        },
+        {
+          "id": null,
+          "name": {
+            "value": "Johnson",
+            "synonyms": []
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -7,4 +7,4 @@ Project is in Proof of Concept stage.
 
 ROADMAP
 - fuzzy up the solr query for better matching on names
-- add VIPs to sample utterances
+- add VIP's last names to sample LAST_NAME slot values
