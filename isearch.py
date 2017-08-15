@@ -27,17 +27,17 @@ SESSION_SLOT_LASTNAME = 'slot_lastname'
 SESSION_SLOT_DEPTNAME = 'slot_deptname'
 
 RESPONSE_SIZE = 15
-PAGINATION_SIZE = 3
+PAGINATION_SIZE = 1
 
 # Define the Flask app.
-app = Flask (__name__)
+app = Flask(__name__)
 ask = Ask(app, "/directory")
 log = logging.getLogger('flask_ask').setLevel(logging.DEBUG)
 
 # Helpers
 
 def get_people_results(firstName='', lastName=''):
-    #url_query = SOLR + PEOPLE_PATH + '?q=firstName:{}+lastName:{}&rows={}&wt=json'.format(first, last, PEOPLE_LIMIT)
+    # url_query = SOLR + PEOPLE_PATH + '?q=firstName:{}+lastName:{}&rows={}&wt=json'.format(first, last, PEOPLE_LIMIT)
     url_query = SOLR + PEOPLE_PATH + '?q=displayName:{} {}&rows={}&wt=json'.format(firstName, lastName, RESPONSE_SIZE)
     resp = requests.get(url_query)
 
@@ -70,24 +70,24 @@ def get_people_results(firstName='', lastName=''):
 
 def get_people_results_output(record):
 
-    #out = record['firstName'] + ' ' + record['lastName'] + ', '
-    out = 'Result: ' + record.get('displayName', '')
-    out += 'Title: ' + record.get('primaryTitle', '')
-    out += 'Department: ' + record.get('primaryiSearchDepartmentAffiliation', '')
-    out += 'Email address: ' + record.get('emailAddress', '')
-    out += 'Phone: <say-as interpret-as="telephone">' + record.get('phone', '') + '</say-as>'  # say-as telephone
-    out += 'Mail code: <say-as interpret-as="digits">' + record.get('primaryMailcode', '') + '</say-as>'  # say-as digits
+    # out = record['firstName'] + ' ' + record['lastName'] + ', '
+    out = record.get('displayName', '')
+    out += ',,Title: ' + record.get('primaryTitle', '')
+    out += ',,Department: ' + record.get('primaryiSearchDepartmentAffiliation', '')
+    out += ',,Email address: ' + record.get('emailAddress', '')
+    out += ',,Phone: <say-as interpret-as="telephone">' + record.get('phone', '') + '</say-as>'  # say-as telephone
+    out += ',,Mail code: <say-as interpret-as="digits">' + record.get('primaryMailcode', '') + '</say-as>'  # say-as digits
     return out
 
 def get_people_results_card(record):
 
-    #out = record['firstName'] + ' ' + record['lastName'] + ', '
+    # out = record['firstName'] + ' ' + record['lastName'] + ', '
     out = '{}'.format(record.get('displayName', ''))
-    out += ',,\n{}'.format(record.get('primaryTitle', ''))
-    out += ',,\n{}'.format(record.get('primaryiSearchDepartmentAffiliation', ''))
-    out += ',,\n{}'.format(record.get('emailAddress', ''))
-    out += ',,\n{}'.format(record.get('phone', ''))
-    out += ',,\n{}'.format(record.get('primaryMailcode', ''))
+    out += '\n{}'.format(record.get('primaryTitle', ''))
+    out += '\n{}'.format(record.get('primaryiSearchDepartmentAffiliation', ''))
+    out += '\n{}'.format(record.get('emailAddress', ''))
+    out += '\n{}'.format(record.get('phone', ''))
+    out += '\n{}'.format(record.get('primaryMailcode', ''))
     return out
 
 def get_people_results_card_photo_url(record):
@@ -131,25 +131,40 @@ def get_first_isearch_people_results(firstName, lastName):
     card_title = "Results for {} {} in people".format(firstName, lastName)
     card_output = ""
     card_photo = ""
+    print('results')
+    print(results)
     range_value = PAGINATION_SIZE if len(results) >= PAGINATION_SIZE else len(results)
     for i in range(range_value):
         speech_output += get_people_results_output(results[i])
         card_output += get_people_results_card(results[i])
-        card_photo += get_people_results_card(results[i])
+        # TODO uncomment when CORS is enabled.
+        #card_photo += get_people_results_card_photo_url(results[i])
     speech_output += " Would you like more results?"
-    #card_output += "Would you like more results?"
-    session.attributes[SESSION_INDEX] = PAGINATION_SIZE
+    session.attributes[SESSION_INDEX] = PAGINATION_SIZE + 1
     session.attributes[SESSION_TEXT] = results
     session.attributes[SESSION_SLOT_FIRSTNAME] = firstName
     session.attributes[SESSION_SLOT_LASTNAME] = lastName
     speech_output = "<speak>{}</speak>".format(speech_output)
-    print('******* speech tags ignored? ***********')
-    print(speech_output)
-    print('******** check code in library? ********')
-    return question(speech_output).reprompt(reprompt_text).simple_card(title=card_title,
-                                                                       text=card_output,
-                                                                       small_image_url=card_photo + '?size=small',
-                                                                       large_image_url=card_photo + '?size=large')
+
+    # CORS enabled photo for testing
+    #card_photo='https://i.imgur.com/hYQzVO3.jpg'
+
+    if len(card_photo) > 0:
+        # TODO issue with CORS for images?
+        # See "Hosting the Images" on https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/providing-home-cards-for-the-amazon-alexa-app
+
+        # TODO better guarding against missing data bits/errors.
+        return question(speech_output) \
+            .reprompt(reprompt_text) \
+            .standard_card(title=card_title,
+                           text=card_output,
+                           small_image_url=card_photo + '?size=small',
+                           large_image_url=card_photo + '?size=large')
+    else:
+        return question(speech_output) \
+            .reprompt(reprompt_text) \
+            .simple_card(title=card_title,
+                         content=card_output)
 
 @ask.intent('iSearchIntentPeopleNext')
 def get_next_isearch_people_results():
@@ -162,23 +177,34 @@ def get_next_isearch_people_results():
     card_title = "More results for {} {} in people".format(firstName, lastName)
     card_output = ""
     card_photo = ""
+    # TODO Fix how we iterate, so this works correctly.
     i = 0
     while i < PAGINATION_SIZE and index < len(results):
-        #speech_output += "{}\n".format(results[index])
-        #card_output += "{}".format(results[index])
-        speech_output += get_people_results_output(results[i])
-        card_output += get_people_results_card(results[i])
-        card_photo += get_people_results_card(results[i])
+        speech_output += get_people_results_output(results[index])
+        card_output += get_people_results_card(results[index])
+        # TODO uncomment when CORS is enabled.
+        #card_photo += get_people_results_card(results[i])
         i += 1
         index += 1
     speech_output += " For more results say yes. Otherwise say quit."
-    card_output += " For more results say yes. Otherwise say quit."
     reprompt_text = "Do you want to hear more results?"
     session.attributes[SESSION_INDEX] = index
     session.attributes[SESSION_SLOT_FIRSTNAME] = firstName
     session.attributes[SESSION_SLOT_LASTNAME] = lastName
-    speech_output = '{}'.format(speech_output)
-    return question(speech_output).reprompt(reprompt_text).simple_card(card_title, card_output)
+    speech_output = '<speak>{}</speak>'.format(speech_output)
+    # return question(speech_output).reprompt(reprompt_text).simple_card(card_title, card_output)
+    if len(card_photo) > 0:
+        return question(speech_output) \
+            .reprompt(reprompt_text) \
+            .standard_card(title=card_title,
+                           text=card_output,
+                           small_image_url=card_photo + '?size=small',
+                           large_image_url=card_photo + '?size=large')
+    else:
+        return question(speech_output) \
+            .reprompt(reprompt_text) \
+            .simple_card(title=card_title,
+                         content=card_output)
 
 
 """
@@ -287,6 +313,7 @@ def departments_found():
 
 if __name__ == '__main__':
     app.run(debug=True)
+    #app.run()
 
 
 
@@ -307,3 +334,5 @@ if __name__ == '__main__':
 # watch videos on Flask
 # more flask-ask
 # zappa
+
+
