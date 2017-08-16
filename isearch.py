@@ -1,12 +1,11 @@
 from flask import Flask
 from flask_ask import Ask, statement, question, session
 
-import json
 import requests
-import time
-import unidecode
+#import json
+#import time
+#import unidecode
 import logging
-
 
 # Params
 SOLR = 'https://asudir-solr.asu.edu/asudir/'
@@ -37,7 +36,6 @@ log = logging.getLogger('flask_ask').setLevel(logging.DEBUG)
 # Helpers
 
 def get_people_results(firstName='', lastName=''):
-    # url_query = SOLR + PEOPLE_PATH + '?q=firstName:{}+lastName:{}&rows={}&wt=json'.format(first, last, PEOPLE_LIMIT)
     url_query = SOLR + PEOPLE_PATH + '?q=displayName:{} {}&rows={}&wt=json'.format(firstName, lastName, RESPONSE_SIZE)
     resp = requests.get(url_query)
 
@@ -61,12 +59,6 @@ def get_people_results(firstName='', lastName=''):
 
     else:
         return "There as a problem querying the people directory."
-
-# DEBUG uncomment to test
-# peeps = get_people_results('michael smith')
-# print(peeps)
-# depts = get_dept_results('uto')
-# print(depts)
 
 def get_people_results_output(record):
 
@@ -95,31 +87,14 @@ def get_people_results_card_photo_url(record):
     out = '{}'.format(record.get('photoUrl', ''))
     return out
 
-# TODO
-# Can we use Flask caching for results within Flask-ask? http://flask.pocoo.org/docs/0.12/patterns/caching/
-
-
 @ask.launch  # User starts skill without any intent.
 def launch():
-    welcome_message = '<speak>Welcome to the <say-as interpret-as="spell-out">ASU</say-as> iSearch Directory. Search people by saying something like "ask directory to find Michael Crow."</speak> '  # \
-    #                  "To search departments try 'search department Registrar.'"
+    welcome_message = '<speak>Welcome to the <say-as interpret-as="spell-out">ASU</say-as> <say-as interpret-as="spell-out">i</say-as>Search Directory. Search people by saying something like "ask directory to find Michael Crow."</speak>'
     return statement(welcome_message)
-
-"""
-We break people and dept search into separate utterances -> intent. It simplifies things to let Alexa handle 
-routing logic based on utterances, vs. us rourting based on slot values in utterances.
-"""
-
-# TODO details page -> do just one at a time and step one at a time?
-# TODO integrate depts search and resolve the overlapping "next" utterance issue.
-
-# TODO Jinja templating?
-
-# TODO Need none-found response
 
 @ask.intent('iSearchIntentPeopleFirst')
 def get_first_isearch_people_results(firstName, lastName):
-    reprompt_text = '<speak>To search the <say-as interpret-as="spell-out">ASU</say-as> iSearch Directory for a person, try asking something like "find Michael Crow"</speak>'
+    reprompt_text = '<speak>To search the <say-as interpret-as="spell-out">ASU</say-as> <say-as interpret-as="spell-out">i<say-as interpret-as="spell-out">Search Directory for a person, try asking something like "find Michael Crow"</speak>'
     if firstName or lastName:
         results = get_people_results(firstName, lastName)
     else:
@@ -214,78 +189,6 @@ def get_next_isearch_people_results():
             .simple_card(title=card_title,
                          content=card_output)
 
-
-"""
-# Idea for doing dispatch between two types of next...
-@ask.intent('iSearchIntentResultNext')
-def get_next_isearch_next_results():
-    results = session.attributes[SESSION_TEXT]
-    index = session.attributes[SESSION_INDEX]
-
-    # Based on session attributes, we can determine state
-    firstName = session.attributes[SESSION_SLOT_FIRSTNAME]
-    lastName = session.attributes[SESSION_SLOT_LASTNAME]
-    deptName = session.attributes[SESSION_SLOT_DEPTNAME]
-
-    if (deptName):
-        return get_next_isearch_dept_results()
-    elif(firstName or lastName):
-        return get_next_isearch_people_results()
-
-    return question(speech_output).reprompt(reprompt_text).simple_card(card_title, card_output)
-
-@ask.intent('iSearchIntentDeptFirst')
-def get_first_isearch_dept_results(deptName):
-    reprompt_text = "To search the ASU iSearch Directory for a department, try asking something like 'find department Registrar'"
-    if (deptName):
-        results = get_dept_results(deptName)
-    else:
-        return statement(reprompt_text)
-    if (results == None):
-        return statement(reprompt_text)
-    # DEBUG
-    #print('-----------')
-    #print(results)
-    #print('-----------')
-    card_title = "Department results for {}".format(deptName)
-    speech_output = "For {}".format(deptName)
-    card_output = ""
-    range_value = PAGINATION_SIZE if len(results) >= PAGINATION_SIZE else len(results)
-    for i in range(range_value):
-        speech_output += "{}".format(results[i])
-        card_output += "{}\n".format(results[i])
-    speech_output += " Would you like more results?"
-    card_output += " Would you like more results?"
-    session.attributes[SESSION_INDEX] = PAGINATION_SIZE
-    session.attributes[SESSION_TEXT] = results
-    session.attributes[SESSION_SLOT_DEPTNAME] = deptName
-    speech_output = '{}'.format(speech_output)
-    return question(speech_output).reprompt(reprompt_text).simple_card(card_title, card_output)
-
-#@ask.intent('iSearchIntentDeptNext')
-def get_next_isearch_dept_results():
-    results = session.attributes[SESSION_TEXT]
-    index = session.attributes[SESSION_INDEX]
-    deptName = session.attributes[SESSION_SLOT_DEPTNAME]
-
-    card_title = "More department results for {}".format(deptName)
-    speech_output = "For {}".format(deptName)
-    card_output = ""
-    i = 0
-    while i < PAGINATION_SIZE and index < len(results):
-        speech_output += "{}".format(results[index])
-        card_output += "{}\n".format(results[index])
-        i += 1
-        index += 1
-    speech_output += " Would you like more results?"
-    card_output += " Would you like more results?"
-    reprompt_text = "Do you want to hear more results?"
-    session.attributes[SESSION_INDEX] = index
-    session.attributes[SESSION_SLOT_DEPTNAME] = deptName
-    speech_output = '{}'.format(speech_output)
-    return question(speech_output).reprompt(reprompt_text)
-"""
-
 @ask.intent('AMAZON.StopIntent')
 def stop():
     return statement("Goodbye")
@@ -296,51 +199,24 @@ def cancel():
 
 @ask.intent('AMAZON.HelpIntent')
 def help():
-    #help_text = "With the ASU iSearch directory, you can search people and departments at ASU. " + \
-    #            "Just tell me whether you want to search for a person or department and then the name."
+    # Use same as launch.
     return launch()
 
 @ask.session_ended
 def session_ended():
     return "{}", 200
 
-"""
-@ask.intent("PeopleFound")
-def people_found():
-    # TODO add slots...
-    people = get_people_results()
-    people_msg = 'I found {}'.format(people)
-    return statement(people_msg)
-
-@ask.intent("DepartmentsFound")
-def departments_found():
-    bye_text = 'Not sure what you want then. Bye.'
-    return statement(bye_text)
-"""
-
-
 if __name__ == '__main__':
     app.run(debug=True)
-    #app.run()
-
-
 
 
 # NOTES
 #
-# To run, use ngrok:
+# To run locally, use ngrok:
 # $ ngrok http 5000
 # Will give an http and https forwarding address. Amazon will want https value when you configure the Alexa skill.
 # Go to developer.amazon.com to create a new Alexa skill.
 # Use https endpoint option, and subdomain SSL option in settings.
 # Start both ngrok (as above) and this script:
-# $ python redditreader.py
+# $ python isearch.py
 # Then you can test it in the console, or with an Alexa device linked to the development account.
-
-
-# TODO
-# watch videos on Flask
-# more flask-ask
-# zappa
-
-
