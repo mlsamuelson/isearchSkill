@@ -131,8 +131,6 @@ def get_first_isearch_people_results(firstName, lastName):
     card_title = "Results for {} {} in people".format(firstName, lastName)
     card_output = ""
     card_photo = ""
-    print('results')
-    print(results)
     range_value = PAGINATION_SIZE if len(results) >= PAGINATION_SIZE else len(results)
     for i in range(range_value):
         speech_output += get_people_results_output(results[i])
@@ -144,11 +142,11 @@ def get_first_isearch_people_results(firstName, lastName):
     session.attributes[SESSION_TEXT] = results
     session.attributes[SESSION_SLOT_FIRSTNAME] = firstName
     session.attributes[SESSION_SLOT_LASTNAME] = lastName
-    speech_output = "<speak>{}</speak>".format(speech_output)
 
     # CORS enabled photo for testing
     #card_photo='https://i.imgur.com/hYQzVO3.jpg'
 
+    speech_output = "<speak>{}</speak>".format(speech_output)
     if len(card_photo) > 0:
         # TODO issue with CORS for images?
         # See "Hosting the Images" on https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/providing-home-cards-for-the-amazon-alexa-app
@@ -177,22 +175,27 @@ def get_next_isearch_people_results():
     card_title = "More results for {} {} in people".format(firstName, lastName)
     card_output = ""
     card_photo = ""
-    # TODO Fix how we iterate, so this works correctly.
     i = 0
-    while i < PAGINATION_SIZE and index < len(results):
-        speech_output += get_people_results_output(results[index])
-        card_output += get_people_results_card(results[index])
-        # TODO uncomment when CORS is enabled.
-        #card_photo += get_people_results_card(results[i])
-        i += 1
-        index += 1
-    speech_output += " For more results say yes. Otherwise say quit."
-    reprompt_text = "Do you want to hear more results?"
+    if(index >= len(results)):
+        speech_output += " End of results."
+        return statement(speech_output)
+
+    else:
+        while i < PAGINATION_SIZE and index < len(results):
+            speech_output += get_people_results_output(results[index])
+            card_output += get_people_results_card(results[index])
+            # TODO uncomment when CORS is enabled.
+            #card_photo += get_people_results_card(results[i])
+            i += 1
+            index += 1
+        speech_output += " For more results say yes. Otherwise say quit."
+        reprompt_text = "Do you want to hear more results?"
+
     session.attributes[SESSION_INDEX] = index
     session.attributes[SESSION_SLOT_FIRSTNAME] = firstName
     session.attributes[SESSION_SLOT_LASTNAME] = lastName
+
     speech_output = '<speak>{}</speak>'.format(speech_output)
-    # return question(speech_output).reprompt(reprompt_text).simple_card(card_title, card_output)
     if len(card_photo) > 0:
         return question(speech_output) \
             .reprompt(reprompt_text) \
