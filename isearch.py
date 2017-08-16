@@ -120,12 +120,17 @@ routing logic based on utterances, vs. us rourting based on slot values in utter
 @ask.intent('iSearchIntentPeopleFirst')
 def get_first_isearch_people_results(firstName, lastName):
     reprompt_text = '<speak>To search the <say-as interpret-as="spell-out">ASU</say-as> iSearch Directory for a person, try asking something like "find Michael Crow"</speak>'
-    if (firstName or lastName):
+    if firstName or lastName:
         results = get_people_results(firstName, lastName)
     else:
         return statement(reprompt_text)
-    if (results == None):
-        return statement(reprompt_text)
+
+    no_results_response = "I didn't find any results for {} {}.".format(firstName, lastName)
+    if results == None:
+        return statement(no_results_response)
+    if len(results) < 1:
+        return statement(no_results_response)
+
     # TODO separate formatting better
     speech_output = "For {} {} in people".format(firstName, lastName)  # Start speech string.
     card_title = "Results for {} {} in people".format(firstName, lastName)
