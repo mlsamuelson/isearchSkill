@@ -111,7 +111,7 @@ def get_first_isearch_people_results(firstName, lastName):
     if len(results) < 1:
         return statement("{}".format(no_results_response))
 
-    speech_output = "For search {} {}".format(firstName, lastName)  # Start speech string.
+    speech_output = "For search {} {}\n".format(firstName, lastName)
     card_title = "Results for {} {}".format(firstName, lastName)
     card_output = ""
     card_photo = ""
