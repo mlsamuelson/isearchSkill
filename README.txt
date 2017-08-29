@@ -11,7 +11,7 @@ ROADMAP
 - uncomment code for displaying photos in cards when CORS has been enabled on the Photos service. Laura C. TODO
 - test fuzzy-ing up the Solr query for better matching on names
 - Add "repeat" as option alongside next result process
-- Figure out what's up with 'for' utterances not mapping to search intent unless search is a
+- Figure out what's up with 'for' utterances not mapping to search intent unless search involves a recorded slot value
 - add VIP's last names to sample LAST_NAME custom slot values for enhanced recognition.
 - better pronunciation for ASU-specific words and abbreviations via SSML <phoneme> and <say-as> tags.
   We had a go at this implemented, however Flask-ask detection of SSML was spotty and it would often read-aloud the
