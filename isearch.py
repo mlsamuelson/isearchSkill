@@ -94,7 +94,7 @@ def get_people_results_card_photo_url(record):
 
 @ask.launch  # User starts skill without any intent.
 def launch():
-    welcome_message = 'Welcome to the ASU I Search Directory. Search people by saying something like "ask directory to find Michael Crow."'
+    welcome_message = 'Welcome to the ASU I Search Directory. Search people by saying something like "ask ASU directory to find Michael Crow."'
     return statement("{}".format(welcome_message))
 
 @ask.intent('iSearchIntentPeopleFirst')
