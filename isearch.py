@@ -146,10 +146,18 @@ def get_first_isearch_people_results(firstName, lastName):
             .simple_card(title=card_title,
                          content=card_output)
 
+
+@ask.intent('iSearchIntentPeopleRepeat')
+def get_repeat_isearch_people_results():
+    return get_next_isearch_people_results(repeat=True)
+
 @ask.intent('iSearchIntentPeopleNext')
-def get_next_isearch_people_results():
+def get_next_isearch_people_results(repeat=None):
     results = session.attributes[SESSION_TEXT]
-    index = session.attributes[SESSION_INDEX]
+    if (repeat):
+        index = session.attributes[SESSION_INDEX] - 1
+    else:
+        index = session.attributes[SESSION_INDEX]
     firstName = session.attributes[SESSION_SLOT_FIRSTNAME]
     lastName = session.attributes[SESSION_SLOT_LASTNAME]
 
@@ -170,7 +178,7 @@ def get_next_isearch_people_results():
             #card_photo += get_people_results_card(results[i])
             i += 1
             index += 1
-        speech_output += " For more results say yes. Otherwise say quit."
+        speech_output += " For more results say yes. To hear again, say repeat. Otherwise say quit."
         reprompt_text = "Do you want to hear more results?"
 
     session.attributes[SESSION_INDEX] = index

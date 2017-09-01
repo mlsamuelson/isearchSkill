@@ -40,6 +40,16 @@
       ]
     },
     {
+      "name": "iSearchIntentPeopleRepeat",
+      "samples": [
+        "repeat",
+        "repeat that",
+        "again",
+        "once more"
+      ],
+      "slots": []
+    },
+    {
       "name": "iSearchIntentPeopleNext",
       "samples": [
         "yes",
