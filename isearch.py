@@ -111,7 +111,7 @@ def get_first_isearch_people_results(firstName, lastName):
     if len(results) < 1:
         return statement("{}".format(no_results_response))
 
-    speech_output = "For search {} {}\n".format(firstName, lastName)
+    speech_output = "For search {} {} ... \n".format(firstName, lastName)
     card_title = "Results for {} {}".format(firstName, lastName)
     card_output = ""
     card_photo = ""
@@ -161,7 +161,7 @@ def get_next_isearch_people_results(repeat=None):
     firstName = session.attributes[SESSION_SLOT_FIRSTNAME]
     lastName = session.attributes[SESSION_SLOT_LASTNAME]
 
-    speech_output = "For {} {} in people\n".format(firstName, lastName)
+    speech_output = "For {} {} in people ... \n".format(firstName, lastName)
     card_title = "More results for {} {} in people".format(firstName, lastName)
     card_output = ""
     card_photo = ""
