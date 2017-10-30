@@ -9,11 +9,14 @@ Directory_VUI_v_2_0 : https://www.lucidchart.com/invitations/accept/64facdbf-dba
 
 Last Name custom slot sample values can be obtained by querying Solr
 https://asudir-solr.asu.edu/asudir/directory/select?q=*&fl=lastName&wt=csv&rows=50000
-And then deduping the output in a spreadsheet program.
+And then deduping the output in a spreadsheet program. However, that produces over 20k
+unique values, and from what other Alexa devs indicate, while 50k is a technical limit,
+2k is a more practical limit. Further details on ALEXADEV-131.
 
 ROADMAP
 - uncomment code for displaying photos in cards when CORS has been enabled on the Photos service. Laura C. TODO
-- test fuzzy-ing up the Solr query for better matching on names
+- test fuzzy-ing up the Solr query for better matching on names. A challenge with this is we've already gone through
+  a layer of Alexa NLP before the query is issued, so things can get skewed before we fuzzy on it.
 - X Add "repeat" as option alongside next result process
 - Figure out what's up with 'for' utterances not mapping to search intent unless search involves a recorded slot value
 - X add VIP's last names to sample LAST_NAME custom slot values for enhanced recognition.
