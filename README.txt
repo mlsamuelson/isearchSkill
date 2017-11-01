@@ -14,7 +14,6 @@ unique values, and from what other Alexa devs indicate, while 50k is a technical
 2k is a more practical limit. Further details on ALEXADEV-131.
 
 ROADMAP
-- uncomment code for displaying photos in cards when CORS has been enabled on the Photos service. Laura C. TODO
 - test fuzzy-ing up the Solr query for better matching on names. A challenge with this is we've already gone through
   a layer of Alexa NLP before the query is issued, so things can get skewed before we fuzzy on it.
 - X Add "repeat" as option alongside next result process
@@ -27,7 +26,7 @@ ROADMAP
 - X can we use Flask caching for results within Flask-ask? http://flask.pocoo.org/docs/0.12/patterns/caching/
   - caching already in Flask-ask library: cache.py
 - check options for better separation of concerns: code and responses. Perhaps leverage Flask-ask Jinja templating.
-- Echo Show display support
+- Echo Show display support- works with cards and photos, but better template, perhaps?
 
 NOTES
 - Dialog Delegation support notes: https://github.com/johnwheeler/flask-ask/pull/165
