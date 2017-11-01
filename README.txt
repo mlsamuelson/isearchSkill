@@ -31,3 +31,28 @@ ROADMAP
 
 NOTES
 - Dialog Delegation support notes: https://github.com/johnwheeler/flask-ask/pull/165
+
+BUILD
+Original reference: https://developer.amazon.com/blogs/post/8e8ad73a-99e9-4c0f-a7b3-60f92287b0bf/new-alexa-tutorial-deploy-flask-ask-skills-to-aws-lambda-with-zappa
+Steps:
+1. Auth with the AWS CLI to the account you'll be deploying to:
+  $ aws configure
+  Use us-east-1 for the default region name.
+2. Activate the Python Virtual Environment from virtualenv
+  $ source venv/bin/activate
+3. Deploy with Zappa. Can also try doing update, for faster process if you've deployed before.
+  $ zappa deploy <environ-name-from-zappa_settings.json>
+4. You may need to copy the deployment URL output by Zappa to Configuration > Endpoint: https, Default: <the-URL>/directory
+  NOTE: the /directory needs to be added to the endpoint URL due to how we're routing the Flask app in isearch.py.
+
+Tail a deployed resource:
+  $ zappa tail <environ-name>
+
+Alternate local testing:
+You can create an endpoint locally using ngrok.
+Start ngrok
+ $ ./ngrok http 5000
+and the isearch.py script.
+ $ python isearch.py
+Then set the https endpoint address + "/directory" as reported by ngrok to be the skill endpoint in the developer site.
+

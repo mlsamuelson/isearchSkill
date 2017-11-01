@@ -39,7 +39,7 @@ log = logging.getLogger('flask_ask').setLevel(logging.DEBUG)
 # Helpers
 
 def get_people_results(firstName='', lastName=''):
-    url_query = SOLR + PEOPLE_PATH + '?q=displayName:{} {}&rows={}&wt=json'.format(firstName, lastName, RESPONSE_SIZE)
+    url_query = SOLR + PEOPLE_PATH + '?q=displayName:{} {}&rows={}&wt=json'.format(firstName, lastName.capitalize(), RESPONSE_SIZE)
     resp = requests.get(url_query)
 
     if resp.status_code == 200:
@@ -105,22 +105,23 @@ def get_first_isearch_people_results(firstName, lastName):
     else:
         return statement("{}".format(reprompt_text))
 
-    no_results_response = "I didn't find any results for {} {}.".format(firstName, lastName)
+    # TODO capitalize lastName in displays with .capitalize()
+
+    no_results_response = "I didn't find any results for {} {}.".format(firstName, lastName.capitalize())
     if results == None:
         return statement("{}".format(no_results_response))
     if len(results) < 1:
         return statement("{}".format(no_results_response))
 
-    speech_output = "For search {} {} ... \n".format(firstName, lastName)
-    card_title = "Results for {} {}".format(firstName, lastName)
+    speech_output = "For search {} {} ... \n".format(firstName, lastName.capitalize())
+    card_title = "Results for {} {}".format(firstName, lastName.capitalize())
     card_output = ""
     card_photo = ""
     range_value = PAGINATION_SIZE if len(results) >= PAGINATION_SIZE else len(results)
     for i in range(range_value):
         speech_output += get_people_results_output(results[i])
         card_output += get_people_results_card(results[i])
-        # TODO uncomment when CORS is enabled.
-        #card_photo += get_people_results_card_photo_url(results[i])
+        card_photo += get_people_results_card_photo_url(results[i])
     speech_output += " Would you like more results?"
     session.attributes[SESSION_INDEX] = PAGINATION_SIZE + 1
     session.attributes[SESSION_TEXT] = results
@@ -131,8 +132,6 @@ def get_first_isearch_people_results(firstName, lastName):
     #card_photo='https://i.imgur.com/hYQzVO3.jpg'
 
     if len(card_photo) > 0:
-        # TODO issue with CORS for images?
-        # See "Hosting the Images" on https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/providing-home-cards-for-the-amazon-alexa-app
 
         return question("{}".format(speech_output)) \
             .reprompt(reprompt_text) \
@@ -161,8 +160,8 @@ def get_next_isearch_people_results(repeat=None):
     firstName = session.attributes[SESSION_SLOT_FIRSTNAME]
     lastName = session.attributes[SESSION_SLOT_LASTNAME]
 
-    speech_output = "For {} {} in people ... \n".format(firstName, lastName)
-    card_title = "More results for {} {} in people".format(firstName, lastName)
+    speech_output = "For {} {} in people ... \n".format(firstName, lastName.capitalize())
+    card_title = "More results for {} {} in people".format(firstName, lastName.capitalize())
     card_output = ""
     card_photo = ""
     i = 0
@@ -174,8 +173,7 @@ def get_next_isearch_people_results(repeat=None):
         while i < PAGINATION_SIZE and index < len(results):
             speech_output += get_people_results_output(results[index])
             card_output += get_people_results_card(results[index])
-            # TODO uncomment when CORS is enabled.
-            #card_photo += get_people_results_card(results[i])
+            card_photo += get_people_results_card_photo_url(results[index])
             i += 1
             index += 1
         speech_output += " For more results say yes. To hear again, say repeat. Otherwise say quit."

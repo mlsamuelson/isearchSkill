@@ -1,3 +1,4 @@
 venv/*
 zappa_settings.json
+zappa_settings.json*
 
