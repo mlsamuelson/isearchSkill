@@ -33,6 +33,7 @@ ROADMAP
   on the Show.
 - Touch activate phone numbers on the Show to initiate a call. (If API allows.)
 - Touch display not always honoring line breaks in output.
+- Rethink deploying to Show with a more touch-interactive results browsing experience.
 
 NOTES
 - Dialog Delegation support notes: https://github.com/johnwheeler/flask-ask/pull/165
