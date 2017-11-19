@@ -31,6 +31,7 @@ ROADMAP
 - X Backwards compatibility between display and non-display devices.
 - Explore CORS image options going forward for cards delivered via the App. We've shut those off, but they do display
   on the Show.
+- Touch activate phone numbers on the Show to initiate a call. (If API allows.)
 
 NOTES
 - Dialog Delegation support notes: https://github.com/johnwheeler/flask-ask/pull/165
