@@ -32,6 +32,7 @@ ROADMAP
 - Explore CORS image options going forward for cards delivered via the App. We've shut those off, but they do display
   on the Show.
 - Touch activate phone numbers on the Show to initiate a call. (If API allows.)
+- Touch display not always honoring line breaks in output.
 
 NOTES
 - Dialog Delegation support notes: https://github.com/johnwheeler/flask-ask/pull/165
