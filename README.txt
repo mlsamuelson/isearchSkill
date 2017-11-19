@@ -14,7 +14,7 @@ unique values, and from what other Alexa devs indicate, while 50k is a technical
 2k is a more practical limit. Further details on ALEXADEV-131.
 
 ROADMAP
-- test fuzzy-ing up the Solr query for better matching on names. A challenge with this is we've already gone through
+- X test fuzzy-ing up the Solr query for better matching on names. A challenge with this is we've already gone through
   a layer of Alexa NLP before the query is issued, so things can get skewed before we fuzzy on it.
 - X Add "repeat" as option alongside next result process
 - Figure out what's up with 'for' utterances not mapping to search intent unless search involves a recorded slot value
@@ -25,8 +25,12 @@ ROADMAP
   within Flask-ask.
 - X can we use Flask caching for results within Flask-ask? http://flask.pocoo.org/docs/0.12/patterns/caching/
   - caching already in Flask-ask library: cache.py
-- check options for better separation of concerns: code and responses. Perhaps leverage Flask-ask Jinja templating.
-- Echo Show display support- works with cards and photos, but better template, perhaps?
+- PARTIAL IMPLEMENTATION. SEE templates.yaml. CONTINUE TEMPLATING: check options for better separation of concerns:
+  code and responses. Perhaps leverage Flask-ask Jinja templating.
+- X Echo Show display support- works with cards and photos, but better template, perhaps?
+- X Backwards compatibility between display and non-display devices.
+- Explore CORS image options going forward for cards delivered via the App. We've shut those off, but they do display
+  on the Show.
 
 NOTES
 - Dialog Delegation support notes: https://github.com/johnwheeler/flask-ask/pull/165

@@ -1,11 +1,11 @@
-from flask import Flask
-from flask_ask import Ask, statement, question, session
+from flask import Flask, json, render_template
+from flask_ask import Ask, statement, question, session, context
 
 import requests
-#import json
-#import time
-#import unidecode
 import logging
+from datetime import datetime
+#import unidecode
+#import urllib2
 
 # DEBUGGING
 # import pdb
@@ -34,7 +34,8 @@ PAGINATION_SIZE = 1
 # Define the Flask app.
 app = Flask(__name__)
 ask = Ask(app, "/directory")
-log = logging.getLogger('flask_ask').setLevel(logging.DEBUG)
+#log = logging.getLogger('flask_ask').setLevel(logging.DEBUG)
+log = logging.getLogger()
 
 # Helpers
 
@@ -80,7 +81,7 @@ def get_people_results_card(record):
 
     # out = record['firstName'] + ' ' + record['lastName'] + ', '
     out = '{}'.format(record.get('displayName', ''))
-    out += '\n{}'.format(record.get('primaryTitle', ''))
+    out += '\n\n{}'.format(record.get('primaryTitle', ''))
     out += '\n{}'.format(record.get('primaryiSearchDepartmentAffiliation', ''))
     out += '\n{}'.format(record.get('emailAddress', ''))
     out += '\n{}'.format(record.get('phone', ''))
@@ -92,20 +93,73 @@ def get_people_results_card_photo_url(record):
     out = '{}'.format(record.get('photoUrl', ''))
     return out
 
+# Session starter
+#
+# This intent is fired automatically at the point of launch (= when the session starts).
+# Use it to register a state machine for things you want to keep track of, such as what the last intent was, so as to be
+# able to give contextual help.
+@ask.on_session_started
+def start_session():
+    """
+    Fired at the start of the session, this is a great place to initialise state variables and the like.
+    """
+    logging.debug("Session started at {}".format(datetime.now().isoformat()))
+
+
+# Launch intent
+#
+# This intent is fired automatically at the point of launch.
+# Use it as a way to introduce your Skill and say hello to the user. If you envisage your Skill to work using the
+# one-shot paradigm (i.e. the invocation statement contains all the parameters that are required for returning the
+# result).
 @ask.launch  # User starts skill without any intent.
 def launch():
-    welcome_message = 'Welcome to the ASU I Search Directory. Search people by saying something like "ask ASU directory to find Michael Crow."'
-    return statement("{}".format(welcome_message))
+    """
+    (QUESTION) Responds to the launch of the Skill with a welcome statement and a card.
+    Templates:
+    * Initial statement: 'welcome'
+    * Reprompt statement: 'welcome_re'
+    * Card title: 'ASU iSearch Directory'
+    * Card body: 'welcome_card'
+    """
+    welcome_text = render_template('welcome')
+    welcome_re_text = render_template('welcome_re')
+    welcome_card_text = render_template('welcome_card')
+
+    welcome_title = 'ASU iSearch Directory'
+
+    out = question(welcome_text)\
+        .reprompt(welcome_re_text)\
+        .standard_card(title=welcome_title, text=welcome_card_text)
+    # If Show.
+    if context.System.device.supportedInterfaces.Display:
+        out.display_render(template='BodyTemplate1', title=welcome_title, token=None, text=None, backButton='HIDDEN',
+        background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/ASU_Echo_Show_Background_Image_1.jpg")
+
+    return out
 
 @ask.intent('iSearchIntentPeopleFirst')
 def get_first_isearch_people_results(firstName, lastName):
-    reprompt_text = 'To search the ASU I Search Directory for a person, try asking something like "find Michael Crow"'
+    """
+    (QUESTION) Responds to the launch of the Skill with a welcome statement and a card.
+    Templates:
+    * Initial statement: 'welcome'
+    * Reprompt statement: 'welcome_re'
+    * Card title: 'Arizona HQ2'
+    * Card body: 'welcome_card'
+    """
+
+    reprompt_text = render_template('welcome_re')
+
+    # TODO some of this to go to template and majority of this will just be the return
+    # TODO map "more" and "next" to more results intent, not just "yes"
+
+    reprompt_text = reprompt_text
+
     if firstName or lastName:
         results = get_people_results(firstName, lastName)
     else:
         return statement("{}".format(reprompt_text))
-
-    # TODO capitalize lastName in displays with .capitalize()
 
     no_results_response = "I didn't find any results for {} {}.".format(firstName, lastName.capitalize())
     if results == None:
@@ -130,20 +184,44 @@ def get_first_isearch_people_results(firstName, lastName):
 
     # CORS enabled photo for testing
     #card_photo='https://i.imgur.com/hYQzVO3.jpg'
+    # Attempt at using urllib2 to open the data and read it into variable. FAILS due to expected HTTPS.
+    #photo_data = urllib2.urlopen('https://webapp4.asu.edu/photo-ws/directory_photo/cors/mcrow')
+    #card_photo = 'data:image/jpeg;base64,' + photo_data.read()
 
     if len(card_photo) > 0:
 
-        return question("{}".format(speech_output)) \
+        out = question("{}".format(speech_output)) \
             .reprompt(reprompt_text) \
-            .standard_card(title=card_title,
-                           text=card_output,
-                           small_image_url=card_photo + '?size=small',
-                           large_image_url=card_photo + '?size=large')
+            .standard_card(title=card_title, text=card_output)
+        # If Show.
+        if context.System.device.supportedInterfaces.Display:
+            out.display_render(template='BodyTemplate3', title=card_title, token=None, text={
+                'primaryText': {
+                    'type': "PlainText",
+                    'text': card_output
+                }
+            }, backButton='VISIBLE', image=card_photo + '?size=large',
+            #background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background-4.png")
+            background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background_image_girl_dark.png")
+
+        return out
+
     else:
-        return question("{}".format(speech_output)) \
+        out = question("{}".format(speech_output)) \
             .reprompt(reprompt_text) \
-            .simple_card(title=card_title,
-                         content=card_output)
+            .simple_card(title=card_title, content=card_output)
+        # If Show.
+        if context.System.device.supportedInterfaces.Display:
+            out.display_render(template='BodyTemplate3', title=card_title, token=None, text={
+                'primaryText': {
+                    'type': "PlainText",
+                    'text': card_output
+                }
+            }, backButton='VISIBLE',
+            #background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background-4.png")
+            background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background_image_girl_dark.png")
+
+        return out
 
 
 @ask.intent('iSearchIntentPeopleRepeat')
@@ -184,17 +262,39 @@ def get_next_isearch_people_results(repeat=None):
     session.attributes[SESSION_SLOT_LASTNAME] = lastName
 
     if len(card_photo) > 0:
-        return question('{}'.format(speech_output)) \
+
+        out = question("{}".format(speech_output)) \
             .reprompt(reprompt_text) \
-            .standard_card(title=card_title,
-                           text=card_output,
-                           small_image_url=card_photo + '?size=small',
-                           large_image_url=card_photo + '?size=large')
+            .standard_card(title=card_title, text=card_output)
+        # If Show.
+        if context.System.device.supportedInterfaces.Display:
+           out.display_render(template='BodyTemplate3', title=card_title, token=None, text={
+           'primaryText': {
+               'type': "PlainText",
+               'text': card_output
+           }
+        }, backButton='VISIBLE', image=card_photo + '?size=large',
+        #background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background-4.png")
+        background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background_image_girl_dark.png")
+
+        return out
+
     else:
-        return question('{}'.format(speech_output)) \
+        out = question("{}".format(speech_output)) \
             .reprompt(reprompt_text) \
-            .simple_card(title=card_title,
-                         content=card_output)
+            .simple_card(title=card_title, content=card_output)
+        # If Show.
+        if context.System.device.supportedInterfaces.Display:
+            out.display_render(template='BodyTemplate3', title=card_title, token=None, text={
+            'primaryText': {
+                'type': "PlainText",
+                'text': card_output
+            }
+        }, backButton='VISIBLE',
+        #background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background-4.png")
+        background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background_image_girl_dark.png")
+
+        return out
 
 @ask.intent('AMAZON.StopIntent')
 def stop():
@@ -209,9 +309,80 @@ def help():
     # Use same as launch.
     return launch()
 
+@ask.intent('AMAZON.NavigateSettingsIntent')
+def handle_navigate_settings():
+    """
+    (?) Handles the 'navigate settings' built-in intention.
+    """
+    pass
+
+@ask.intent('AMAZON.MoreIntent')
+def handle_more():
+    """
+    (?) Handles the 'more' built-in intention.
+    """
+    pass
+
+@ask.intent('AMAZON.NextIntent')
+def handle_next():
+    """
+    (?) Handles the 'next' built-in intention.
+    """
+    pass
+
+@ask.intent('AMAZON.PageDownIntent')
+def handle_page_down():
+    """
+    (?) Handles the 'page down' built-in intention.
+    """
+    pass
+
+@ask.intent('AMAZON.PageUpIntent')
+def handle_page_up():
+    """
+    (?) Handles the 'page up' built-in intention.
+    """
+    pass
+
+@ask.intent('AMAZON.NoIntent')
+def handle_no():
+    """
+    (?) Handles the 'no' built-in intention.
+    """
+    pass
+
+@ask.intent('AMAZON.YesIntent')
+def handle_yes():
+    """
+    (?) Handles the 'yes'  built-in intention.
+    """
+    pass
+
+@ask.intent('AMAZON.PreviousIntent')
+def handle_back():
+    """
+    (?) Handles the 'go back!'  built-in intention.
+    """
+    pass
+
+@ask.intent('AMAZON.StartOverIntent')
+def start_over():
+    """
+    (QUESTION) Handles the 'start over!'  built-in intention.
+    """
+    pass
+
 @ask.session_ended
 def session_ended():
-    return "{}", 200
+    """
+    Returns an empty for `session_ended`.
+    .. warning::
+    The status of this is somewhat controversial. The `official documentation`_ states that you cannot return a response
+    to ``SessionEndedRequest``. However, if it only returns a ``200/OK``, the quit utterance (which is a default test
+    utterance!) will return an error and the skill will not validate.
+    """
+    # return "{}", 200
+    return statement("")
 
 if __name__ == '__main__':
     app.run(debug=True)

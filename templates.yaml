@@ -1,0 +1,26 @@
+tempe: <phoneme alphabet="x-sampa" ph="tem&quot;pi">Tempe</phoneme>
+asu: <say-as interpret-as="spell-out">ASU</say-as>
+isearch: <say-as interpret-as="spell-out">I</say-as> Search
+
+welcome: |
+  <speak>
+    <p>Welcome to the {% include 'asu' %} {% include 'isearch' %} Directory. Search faculty, staff and students by saying something like "Find Michael Crow."</p>
+  </speak>
+
+welcome_re: |
+  <speak>
+    <p>Who'd you like to look up? Try something like, "Find Michael Crow."</p>
+  </speak>
+
+welcome_card: |
+  Welcome to the ASU iSearch Directory. Search people by saying something like "Find Michael Crow."
+
+stop_bye: |
+  Goodbye.
+
+cancel_bye: |
+  OK, goodbye!
+
+help_text: |
+  {% include 'welcome' %}
+
