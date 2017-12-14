@@ -4,6 +4,8 @@ from flask_ask import Ask, statement, question, session, context
 import requests
 import logging
 from datetime import datetime
+from xml.sax.saxutils import escape, unescape
+
 #import unidecode
 #import urllib2
 
@@ -40,7 +42,11 @@ log = logging.getLogger()
 # Helpers
 
 def get_people_results(firstName='', lastName=''):
-    url_query = SOLR + PEOPLE_PATH + '?q=displayName:{} {}&rows={}&wt=json'.format(firstName, lastName.capitalize(), RESPONSE_SIZE)
+    #url_query = SOLR + PEOPLE_PATH + '?q=displayName:{} {}&rows={}&wt=json'.format(firstName, lastName.capitalize(), RESPONSE_SIZE)
+    # TODO supress matching on the bio field... or do boost on first, last and display name, and then push down the bio
+    url_query = SOLR + PEOPLE_PATH + '?q={} {}&rows={}&wt=json'.format(firstName, lastName.capitalize(), RESPONSE_SIZE)
+    # Match on all fields as well as displayName
+    #url_query = SOLR + PEOPLE_PATH + '?q={} {}&q=displayName:{} {}&rows={}&wt=json'.format(firstName, lastName.capitalize(),firstName, lastName.capitalize(), RESPONSE_SIZE)
     resp = requests.get(url_query)
 
     if resp.status_code == 200:
@@ -66,26 +72,26 @@ def get_people_results(firstName='', lastName=''):
 
 def get_people_results_output(record):
 
-    # out = record['firstName'] + ' ' + record['lastName'] + ', '
-    out = record.get('displayName', '')
-    out += ',,,Title:,, ' + record.get('primaryTitle') if record.get('primaryTitle') else ''
-    out += ',,,Department:,, ' + record.get('primaryiSearchDepartmentAffiliation') if record.get('primaryiSearchDepartmentAffiliation') else ''
-    out += ',,,Email address:,, ' + record.get('emailAddress') if record.get('emailAddress') else ''
-    out += ',,,Phone:,, ' + record.get('phone') if record.get('phone') else ''
-    # out += ',,,Phone:,, <say-as interpret-as="telephone">' + record.get('phone') + '</say-as>' if record.get('phone') else ''
-    out += ',,,Mail code:,, ' + record.get('primaryMailcode') if record.get('primaryMailcode') else ''
-    # out += ',,,Mail code:,, <say-as interpret-as="digits">' + record.get('primaryMailcode') + '</say-as>' if record.get('primaryMailcode') else ''
+    # Note, need to ensure escaping on values as & and other special characters will force this to be interpreted as
+    # text instead of ssml.
+
+    out = escape(record.get('displayName', ''))
+    out += '<break/> Title:<break/> ' + escape(record.get('primaryTitle')) if record.get('primaryTitle') else ''
+    out += '<break/> Department:<break/> ' + escape(record.get('primaryiSearchDepartmentAffiliation')) if record.get('primaryiSearchDepartmentAffiliation') else ''
+    out += '<break/> Email address:<break/> <prosody rate="slow"><say-as interpret-as="spell-out">' + escape(record.get('emailAddress')) + '</say-as></prosody>' if record.get('emailAddress') else '' # .replace('@asu.edu', ',at A S U dot E D U') if record.get('emailAddress') else ''
+    out += '<break/> Phone:<break/> <say-as interpret-as="telephone">' + escape(record.get('phone')) + "</say-as>" if record.get('phone') else ''
+    out += '<break/> Mail code:<break/> ' + escape(record.get('primaryMailcode')) if record.get('primaryMailcode') else ''
     return out
 
 def get_people_results_card(record):
 
     # out = record['firstName'] + ' ' + record['lastName'] + ', '
-    out = '{}'.format(record.get('displayName', ''))
-    out += '\n\n{}'.format(record.get('primaryTitle', ''))
-    out += '\n{}'.format(record.get('primaryiSearchDepartmentAffiliation', ''))
-    out += '\n{}'.format(record.get('emailAddress', ''))
-    out += '\n{}'.format(record.get('phone', ''))
-    out += '\n{}'.format(record.get('primaryMailcode', ''))
+    out = '<b>{}</b>'.format(escape(record.get('displayName', ''))) if record.get('displayName') else ''
+    out += '<br/>{}'.format(escape(record.get('primaryTitle', ''))) if record.get('primaryTitle') else ''
+    out += '<br/>{}'.format(escape(record.get('primaryiSearchDepartmentAffiliation', ''))) if record.get('primaryiSearchDepartmentAffiliation') else ''
+    out += '<br/>{}'.format(escape(record.get('emailAddress', ''))) if record.get('emailAddress') else ''
+    out += '<br/>{}'.format(escape(record.get('phone', ''))) if record.get('phone') else ''
+    out += '<br/>{}'.format(escape(record.get('primaryMailcode', ''))) if record.get('primaryMailcode') else ''
     return out
 
 def get_people_results_card_photo_url(record):
@@ -133,8 +139,14 @@ def launch():
         .standard_card(title=welcome_title, text=welcome_card_text)
     # If Show.
     if context.System.device.supportedInterfaces.Display:
-        out.display_render(template='BodyTemplate1', title=welcome_title, token=None, text=None, backButton='HIDDEN',
-        background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/ASU_Echo_Show_Background_Image_1.jpg")
+        out.display_render(
+            template='BodyTemplate1',
+            title=welcome_title,
+            token=None,
+            text=None,
+            backButton='HIDDEN',
+            background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/ASU_Echo_Show_Background_Image_1.jpg"
+        )
 
     return out
 
@@ -150,11 +162,6 @@ def get_first_isearch_people_results(firstName, lastName):
     """
 
     reprompt_text = render_template('welcome_re')
-
-    # TODO some of this to go to template and majority of this will just be the return
-    # TODO map "more" and "next" to more results intent, not just "yes"
-
-    reprompt_text = reprompt_text
 
     if firstName or lastName:
         results = get_people_results(firstName, lastName)
@@ -188,38 +195,54 @@ def get_first_isearch_people_results(firstName, lastName):
     #photo_data = urllib2.urlopen('https://webapp4.asu.edu/photo-ws/directory_photo/cors/mcrow')
     #card_photo = 'data:image/jpeg;base64,' + photo_data.read()
 
+    # Load template wrapper for results.
+    speech_output = render_template('people_results', results=speech_output)
+
     if len(card_photo) > 0:
 
-        out = question("{}".format(speech_output)) \
+        out = question(speech_output) \
             .reprompt(reprompt_text) \
             .standard_card(title=card_title, text=card_output)
         # If Show.
         if context.System.device.supportedInterfaces.Display:
-            out.display_render(template='BodyTemplate3', title=card_title, token=None, text={
-                'primaryText': {
-                    'type': "PlainText",
-                    'text': card_output
-                }
-            }, backButton='VISIBLE', image=card_photo + '?size=large',
-            #background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background-4.png")
-            background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background_image_girl_dark.png")
+            out.display_render(
+                template='BodyTemplate2',
+                title=card_title,
+                token=None,
+                text={
+                    'primaryText': {
+                        'text': card_output,
+                        'type': "RichText"
+                    }
+                },
+                backButton='VISIBLE',
+                image=card_photo + '?size=large',
+                #background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background-4.png")
+                background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background_image_girl_dark.png"
+            )
 
         return out
 
     else:
-        out = question("{}".format(speech_output)) \
+        out = question(speech_output) \
             .reprompt(reprompt_text) \
             .simple_card(title=card_title, content=card_output)
         # If Show.
         if context.System.device.supportedInterfaces.Display:
-            out.display_render(template='BodyTemplate3', title=card_title, token=None, text={
-                'primaryText': {
-                    'type': "PlainText",
-                    'text': card_output
-                }
-            }, backButton='VISIBLE',
-            #background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background-4.png")
-            background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background_image_girl_dark.png")
+            out.display_render(
+                template='BodyTemplate2',
+                title=card_title,
+                token=None,
+                text={
+                    'primaryText': {
+                        'text': card_output,
+                        'type': "RichText"
+                    }
+                },
+                backButton='VISIBLE',
+                #background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background-4.png")
+                background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background_image_girl_dark.png"
+            )
 
         return out
 
@@ -254,45 +277,61 @@ def get_next_isearch_people_results(repeat=None):
             card_photo += get_people_results_card_photo_url(results[index])
             i += 1
             index += 1
-        speech_output += " For more results say yes. To hear again, say repeat. Otherwise say quit."
+        speech_output += " For more results say next. To hear again, say repeat."
         reprompt_text = "Do you want to hear more results?"
 
     session.attributes[SESSION_INDEX] = index
     session.attributes[SESSION_SLOT_FIRSTNAME] = firstName
     session.attributes[SESSION_SLOT_LASTNAME] = lastName
 
+    # Load template wrapper for results.
+    speech_output = render_template('people_results', results=speech_output)
+
     if len(card_photo) > 0:
 
-        out = question("{}".format(speech_output)) \
+        out = question(speech_output) \
             .reprompt(reprompt_text) \
             .standard_card(title=card_title, text=card_output)
         # If Show.
         if context.System.device.supportedInterfaces.Display:
-           out.display_render(template='BodyTemplate3', title=card_title, token=None, text={
-           'primaryText': {
-               'type': "PlainText",
-               'text': card_output
-           }
-        }, backButton='VISIBLE', image=card_photo + '?size=large',
-        #background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background-4.png")
-        background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background_image_girl_dark.png")
+           out.display_render(
+               template='BodyTemplate2',
+               title=card_title,
+               token=None,
+               text={
+                   'primaryText': {
+                       'text': card_output,
+                       'type': "RichText"
+                   }
+               },
+               backButton='VISIBLE',
+               image=card_photo + '?size=large',
+               #background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background-4.png")
+               background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background_image_girl_dark.png"
+           )
 
         return out
 
     else:
-        out = question("{}".format(speech_output)) \
+        out = question(speech_output) \
             .reprompt(reprompt_text) \
             .simple_card(title=card_title, content=card_output)
         # If Show.
         if context.System.device.supportedInterfaces.Display:
-            out.display_render(template='BodyTemplate3', title=card_title, token=None, text={
-            'primaryText': {
-                'type': "PlainText",
-                'text': card_output
-            }
-        }, backButton='VISIBLE',
-        #background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background-4.png")
-        background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background_image_girl_dark.png")
+            out.display_render(
+                template='BodyTemplate2',
+                title=card_title,
+                token=None,
+                text={
+                    'primaryText': {
+                        'text': card_output,
+                        'type': "RichText"
+                    }
+                },
+                backButton='VISIBLE',
+                #background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background-4.png")
+                background_image_url="https://s3.amazonaws.com/asu.amazonecho/asu_directory_images/background_image_girl_dark.png"
+            )
 
         return out
 
