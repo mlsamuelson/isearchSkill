@@ -14,26 +14,31 @@ unique values, and from what other Alexa devs indicate, while 50k is a technical
 2k is a more practical limit. Further details on ALEXADEV-131.
 
 ROADMAP
-- X test fuzzy-ing up the Solr query for better matching on names. A challenge with this is we've already gone through
+- Explore use of phonetic filters in Solr queries: https://lucene.apache.org/solr/guide/6_6/phonetic-matching.html
+- Figure out what's up with 'for' utterances not mapping to search intent unless search involves a recorded slot value
+- PARTIAL IMPLEMENTATION. SEE templates.yaml. CONTINUE TEMPLATING: check options for better separation of concerns:
+  code and responses. Perhaps leverage Flask-ask Jinja templating.
+- Explore CORS image options going forward for cards delivered via the App. We've shut those off, but they do display
+  on the Show.
+- Touch activate phone numbers on the Show to initiate a call. (If ASK API allows.)
+- Touch display not always honoring line breaks in output.
+- Rethink deploying to Show with a more touch-interactive results browsing experience, i.e. use of list templates.
+- Add a VUI route for querying Dept phone numbers and info. As reference, for how this might work, see
+  https://www.amazon.com/The-University-of-Oklahoma-Directory/dp/B073WL5BYR/
+- Improve repeat queries during a single launch.
+COMPLETED
+- X Test fuzzy-ing up the Solr query for better matching on names. A challenge with this is we've already gone through
   a layer of Alexa NLP before the query is issued, so things can get skewed before we fuzzy on it.
 - X Add "repeat" as option alongside next result process
-- Figure out what's up with 'for' utterances not mapping to search intent unless search involves a recorded slot value
 - X add VIP's last names to sample LAST_NAME custom slot values for enhanced recognition.
-- better pronunciation for ASU-specific words and abbreviations via SSML <phoneme> and <say-as> tags.
+- X Better pronunciation for ASU-specific words and abbreviations via SSML <phoneme> and <say-as> tags.
   We had a go at this implemented, however Flask-ask detection of SSML was spotty and it would often read-aloud the
-  tags. Initial inspection failed to determine why. Backed out SMSML for now. We'll need to debug the issue from
+  tags. Initial inspection failed to determine why. Backed out SSML for now. We'll need to debug the issue from
   within Flask-ask.
 - X can we use Flask caching for results within Flask-ask? http://flask.pocoo.org/docs/0.12/patterns/caching/
   - caching already in Flask-ask library: cache.py
-- PARTIAL IMPLEMENTATION. SEE templates.yaml. CONTINUE TEMPLATING: check options for better separation of concerns:
-  code and responses. Perhaps leverage Flask-ask Jinja templating.
 - X Echo Show display support- works with cards and photos, but better template, perhaps?
 - X Backwards compatibility between display and non-display devices.
-- Explore CORS image options going forward for cards delivered via the App. We've shut those off, but they do display
-  on the Show.
-- Touch activate phone numbers on the Show to initiate a call. (If API allows.)
-- Touch display not always honoring line breaks in output.
-- Rethink deploying to Show with a more touch-interactive results browsing experience.
 
 NOTES
 - Dialog Delegation support notes: https://github.com/johnwheeler/flask-ask/pull/165
