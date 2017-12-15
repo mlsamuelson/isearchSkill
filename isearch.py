@@ -42,11 +42,14 @@ log = logging.getLogger()
 # Helpers
 
 def get_people_results(firstName='', lastName=''):
-    #url_query = SOLR + PEOPLE_PATH + '?q=displayName:{} {}&rows={}&wt=json'.format(firstName, lastName.capitalize(), RESPONSE_SIZE)
-    # TODO supress matching on the bio field... or do boost on first, last and display name, and then push down the bio
-    url_query = SOLR + PEOPLE_PATH + '?q={} {}&rows={}&wt=json'.format(firstName, lastName.capitalize(), RESPONSE_SIZE)
-    # Match on all fields as well as displayName
-    #url_query = SOLR + PEOPLE_PATH + '?q={} {}&q=displayName:{} {}&rows={}&wt=json'.format(firstName, lastName.capitalize(),firstName, lastName.capitalize(), RESPONSE_SIZE)
+
+    # Solr query.
+    # Query allows for stemming and possibly phonemic matches on names. Also, while not optimized for title and bio
+    # searches, this will hit those fields, so a query for "Chief Information Officer" is likely to return decent hits.
+    # Boost hits on displayName by 20 and lastNameExact by 50, specify all fields to query (qf), and mark displayName
+    # as a phrase field (pf).
+    url_query = SOLR + PEOPLE_PATH + '?defType=edismax&q={}%20{}&qf=displayName%5E20.0%20firstName%20lastName%20lastNameExact%5E50.0%20primaryTitle%20primaryDepartment%20researchInterests&pf=displayName%5E20.0&rows={}&wt=json'.format(firstName, lastName.capitalize(), RESPONSE_SIZE)
+
     resp = requests.get(url_query)
 
     if resp.status_code == 200:
