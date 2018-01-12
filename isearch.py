@@ -1,5 +1,5 @@
 from flask import Flask, json, render_template
-from flask_ask import Ask, statement, question, session, context
+from flask_ask import Ask, statement, question, session, context, delegate
 
 import requests
 import logging
@@ -86,10 +86,23 @@ def get_people_results_output(record):
     out += '<break/> Mail code:<break/> ' + escape(record.get('primaryMailcode')) if record.get('primaryMailcode') else ''
     return out
 
+# For Alexa app cards.
 def get_people_results_card(record):
 
     # out = record['firstName'] + ' ' + record['lastName'] + ', '
-    out = '<b>{}</b>'.format(escape(record.get('displayName', ''))) if record.get('displayName') else ''
+    out = '\n{}'.format(escape(record.get('displayName', ''))) if record.get('displayName') else ''
+    out += '\n{}'.format(escape(record.get('primaryTitle', ''))) if record.get('primaryTitle') else ''
+    out += '\n{}'.format(escape(record.get('primaryiSearchDepartmentAffiliation', ''))) if record.get('primaryiSearchDepartmentAffiliation') else ''
+    out += '\n{}'.format(escape(record.get('emailAddress', ''))) if record.get('emailAddress') else ''
+    out += '\n{}'.format(escape(record.get('phone', ''))) if record.get('phone') else ''
+    out += '\n{}'.format(escape(record.get('primaryMailcode', ''))) if record.get('primaryMailcode') else ''
+    return out
+
+# For Show and related display.
+def get_people_results_rich_output(record):
+
+    # out = record['firstName'] + ' ' + record['lastName'] + ', '
+    out = '<br/><b>{}</b>'.format(escape(record.get('displayName', ''))) if record.get('displayName') else ''
     out += '<br/>{}'.format(escape(record.get('primaryTitle', ''))) if record.get('primaryTitle') else ''
     out += '<br/>{}'.format(escape(record.get('primaryiSearchDepartmentAffiliation', ''))) if record.get('primaryiSearchDepartmentAffiliation') else ''
     out += '<br/>{}'.format(escape(record.get('emailAddress', ''))) if record.get('emailAddress') else ''
@@ -101,6 +114,13 @@ def get_people_results_card_photo_url(record):
 
     out = '{}'.format(record.get('photoUrl', ''))
     return out
+
+# Used in dialog.delegate scenarios.
+# See https://stackoverflow.com/questions/48053778/how-to-create-conversational-skills-using-flask-ask-amazon-alexa-and-python-3-b/48209279
+def get_dialog_state():
+
+    return session['dialogState']
+
 
 # Session starter
 #
@@ -158,9 +178,11 @@ def get_first_isearch_people_results(firstName, lastName):
     """
     (QUESTION) Responds to the launch of the Skill with a welcome statement and a card.
     Templates:
-    * Initial statement: 'welcome'
+    * Initial statement: dynamic response
     * Reprompt statement: 'welcome_re'
-    * Card title: 'Arizona HQ2'
+    * No results: 'no_results'
+    * Results: 'people_results'
+    * Card title: 'ASU iSearch Directory'
     * Card body: 'welcome_card'
     """
 
@@ -171,21 +193,22 @@ def get_first_isearch_people_results(firstName, lastName):
     else:
         return statement("{}".format(reprompt_text))
 
-    no_results_response = "I didn't find any results for {} {}.".format(firstName, lastName.capitalize())
     if results == None:
-        return statement("{}".format(no_results_response))
+        return question("{}".format(render_template('no_results', first=firstName, last=lastName.capitalize())))
     if len(results) < 1:
-        return statement("{}".format(no_results_response))
+        return question("{}".format(render_template('no_results', first=firstName, last=lastName.capitalize())))
 
     speech_output = "For search {} {} ... \n".format(firstName, lastName.capitalize())
     card_title = "Results for {} {}".format(firstName, lastName.capitalize())
     card_output = ""
     card_photo = ""
+    screen_output = ""
     range_value = PAGINATION_SIZE if len(results) >= PAGINATION_SIZE else len(results)
     for i in range(range_value):
         speech_output += get_people_results_output(results[i])
         card_output += get_people_results_card(results[i])
         card_photo += get_people_results_card_photo_url(results[i])
+        screen_output += get_people_results_rich_output(results[i])
     speech_output += " Would you like more results?"
     session.attributes[SESSION_INDEX] = PAGINATION_SIZE + 1
     session.attributes[SESSION_TEXT] = results
@@ -214,7 +237,7 @@ def get_first_isearch_people_results(firstName, lastName):
                 token=None,
                 text={
                     'primaryText': {
-                        'text': card_output,
+                        'text': screen_output,
                         'type': "RichText"
                     }
                 },
@@ -238,7 +261,7 @@ def get_first_isearch_people_results(firstName, lastName):
                 token=None,
                 text={
                     'primaryText': {
-                        'text': card_output,
+                        'text': screen_output,
                         'type': "RichText"
                     }
                 },
@@ -256,6 +279,19 @@ def get_repeat_isearch_people_results():
 
 @ask.intent('iSearchIntentPeopleNext')
 def get_next_isearch_people_results(repeat=None):
+    """
+    (QUESTION) Responds to the launch of the Skill with a welcome statement and a card.
+    Templates:
+    * Initial statement: dynamic response
+    * Reprompt statement: 'welcome_re'
+    * No results: 'no_results'
+    * Results: 'people_results'
+    * Card title: 'ASU iSearch Directory'
+    * Card body: 'welcome_card'
+    """
+
+    reprompt_text = render_template('welcome_re')
+
     results = session.attributes[SESSION_TEXT]
     if (repeat):
         index = session.attributes[SESSION_INDEX] - 1
@@ -268,20 +304,22 @@ def get_next_isearch_people_results(repeat=None):
     card_title = "More results for {} {} in people".format(firstName, lastName.capitalize())
     card_output = ""
     card_photo = ""
+    screen_output = ""
     i = 0
     if index >= len(results):
-        speech_output += " End of results."
-        return statement("{}".format(speech_output))
+        speech_output += " End of results. ...You can do another search, ask to spell a name, or say quit."
+        return question("{}".format(speech_output))
 
     else:
         while i < PAGINATION_SIZE and index < len(results):
             speech_output += get_people_results_output(results[index])
             card_output += get_people_results_card(results[index])
             card_photo += get_people_results_card_photo_url(results[index])
+            screen_output += get_people_results_rich_output(results[index])
             i += 1
             index += 1
         speech_output += " For more results say next. To hear again, say repeat."
-        reprompt_text = "Do you want to hear more results?"
+
 
     session.attributes[SESSION_INDEX] = index
     session.attributes[SESSION_SLOT_FIRSTNAME] = firstName
@@ -303,7 +341,7 @@ def get_next_isearch_people_results(repeat=None):
                token=None,
                text={
                    'primaryText': {
-                       'text': card_output,
+                       'text': screen_output,
                        'type': "RichText"
                    }
                },
@@ -327,7 +365,7 @@ def get_next_isearch_people_results(repeat=None):
                 token=None,
                 text={
                     'primaryText': {
-                        'text': card_output,
+                        'text': screen_output,
                         'type': "RichText"
                     }
                 },
@@ -337,6 +375,29 @@ def get_next_isearch_people_results(repeat=None):
             )
 
         return out
+
+@ask.intent('iSearchIntentSpellName')
+def get_spell_isearch_names(firstNameSpelled, lastNameSpelled):
+    dialog_state = get_dialog_state()
+    if dialog_state != "COMPLETED":
+        return delegate(speech=None)
+
+    # Debug
+    #print(firstNameSpelled)
+    #print(lastNameSpelled)
+
+    # Pre-Solr search processing.
+    # Strip out spaces, if any are still in the string after Alexa's processing. Capitalize first character only.
+    lastNameSpelled = lastNameSpelled.replace(" ", "").capitalize()
+    firstNameSpelled = firstNameSpelled.replace(" ", "").capitalize()
+
+    # Debug
+    #print(firstNameSpelled)
+    #print(lastNameSpelled)
+
+    # Invokes iSearchIntentPeopleFirst intent, once spelling/delegation and pre-processing is done.
+    return get_first_isearch_people_results(firstNameSpelled, lastNameSpelled)
+
 
 @ask.intent('AMAZON.StopIntent')
 def stop():
@@ -348,8 +409,7 @@ def cancel():
 
 @ask.intent('AMAZON.HelpIntent')
 def help():
-    # Use same as launch.
-    return launch()
+    return question(render_template('help_text'))
 
 @ask.intent('AMAZON.NavigateSettingsIntent')
 def handle_navigate_settings():

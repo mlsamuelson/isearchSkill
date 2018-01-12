@@ -14,19 +14,23 @@ unique values, and from what other Alexa devs indicate, while 50k is a technical
 2k is a more practical limit. Further details on ALEXADEV-131.
 
 ROADMAP
-- Explore use of phonetic filters in Solr queries: https://lucene.apache.org/solr/guide/6_6/phonetic-matching.html
+- Add "who is the ___" titleSearchIntent
+- Rethink deploying to Show with a more touch-interactive results browsing experience, i.e. use of list templates.
+- Add a VUI route for querying Dept phone numbers and info. As reference, for how this might work, see
+  https://www.amazon.com/The-University-of-Oklahoma-Directory/dp/B073WL5BYR/
 - Figure out what's up with 'for' utterances not mapping to search intent unless search involves a recorded slot value
 - PARTIAL IMPLEMENTATION. SEE templates.yaml. CONTINUE TEMPLATING: check options for better separation of concerns:
   code and responses. Perhaps leverage Flask-ask Jinja templating.
 - Explore CORS image options going forward for cards delivered via the App. We've shut those off, but they do display
   on the Show.
 - Touch activate phone numbers on the Show to initiate a call. (If ASK API allows.)
-- Touch display not always honoring line breaks in output.
-- Rethink deploying to Show with a more touch-interactive results browsing experience, i.e. use of list templates.
-- Add a VUI route for querying Dept phone numbers and info. As reference, for how this might work, see
-  https://www.amazon.com/The-University-of-Oklahoma-Directory/dp/B073WL5BYR/
-- Improve repeat queries during a single launch.
+- Touch display not always honoring line breaks in output. (documented Alexa issue)
+- X Improve repeat queries during a single launch.
 COMPLETED
+- X Added spellName intent for names Alexa doesn't recognize.
+- X (revisit later, in iSearch 2.0) Explore use of phonetic filters in Solr queries:
+    https://lucene.apache.org/solr/guide/6_6/phonetic-matching.html
+    Currently employs Double Metaphone algorithm.
 - X Test fuzzy-ing up the Solr query for better matching on names. A challenge with this is we've already gone through
   a layer of Alexa NLP before the query is issued, so things can get skewed before we fuzzy on it.
 - X Add "repeat" as option alongside next result process

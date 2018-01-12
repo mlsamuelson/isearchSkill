@@ -5,21 +5,28 @@ isearch: <say-as interpret-as="spell-out">I</say-as> Search
 
 welcome: |
   <speak>
-    <p>Welcome to the {% include 'asu' %} {% include 'isearch' %} Directory. Search faculty staff and students by saying something like "Find Michael Crow."</p>
+    <p>Welcome to the {% include 'asu' %} {% include 'isearch' %} Directory. Say something like "Find Michael Crow" to
+    get started. Or ask for help to learn more.</p>
   </speak>
 
 welcome_re: |
   <speak>
-    <p>Who would you like to look up? Try something like, "Find Michael Crow."</p>
+    <p>To look someone up say something such as, "Find Michael Crow." Or try spelling a name. Say, "Spell name,"
+    to get started.</p>
   </speak>
 
 welcome_card: |
-  Welcome to the ASU iSearch Directory. Search people by saying something like "Find Michael Crow."
+  Welcome to the ASU iSearch Directory. Search faculty, staff and students at Arizona State University by saying
+  something like "Find Michael Crow." Or say, "Spell name," to look someone up by spelling their name.
 
 people_results: |
   <speak>
     <p>{{ results }}</p>
   </speak>
+
+no_results: |
+  I didn't find any results for {{ first }} {{ last }}. Try saying "spell name" or ask me to find someone else by
+  saying something such as "Find Michael Crow."
 
 stop_bye: |
   Goodbye.
@@ -28,5 +35,9 @@ cancel_bye: |
   OK, goodbye!
 
 help_text: |
-  {% include 'welcome' %}
+  <speak>
+    <p>With the {% include 'asu' %} {% include 'isearch' %} Directory you can search faculty staff and students from
+    Arizona State University. Search for an individual by saying something like "Find Michael Crow." If I fail to
+    recognize a name, try saying "Spell a name."</p>
+  </speak>
 
