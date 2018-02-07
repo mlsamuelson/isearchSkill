@@ -1448,6 +1448,60 @@
             }
           }
         ]
+      },
+      {
+        "name": "TITLE_SEARCH_PHRASE",
+        "values": [
+          {
+            "id": null,
+            "name": {
+              "value": "president",
+              "synonyms": [
+                "head of Arizona State University",
+                "head of the university",
+                "head of ASU",
+                "university president",
+                "ASU president",
+                "Arizona State University president"
+              ]
+            }
+          },
+          {
+            "id": null,
+            "name": {
+              "value": "chief information officer",
+              "synonyms": []
+            }
+          },
+          {
+            "id": null,
+            "name": {
+              "value": "chief information officer of university technology office",
+              "synonyms": []
+            }
+          },
+          {
+            "id": null,
+            "name": {
+              "value": "registrar",
+              "synonyms": []
+            }
+          },
+          {
+            "id": null,
+            "name": {
+              "value": "provost",
+              "synonyms": []
+            }
+          },
+          {
+            "id": null,
+            "name": {
+              "value": "director",
+              "synonyms": []
+            }
+          }
+        ]
       }
     ],
     "intents": [
@@ -1508,7 +1562,40 @@
         ]
       },
       {
-        "name": "iSearchIntentPeopleFirst",
+        "name": "iSearchIntentBackToResults",
+        "samples": [
+          "go back",
+          "back to results",
+          "return to results",
+          "back"
+        ],
+        "slots": []
+      },
+      {
+        "name": "iSearchIntentItemDetail",
+        "samples": [
+          "show {itemNumber}",
+          "result {itemNumber}",
+          "tell me {itemNumber}",
+          "I'd like {itemNumber}",
+          "number {itemNumber}",
+          "select {itemNumber}",
+          "open {itemNumber}",
+          "open number {itemNumber}",
+          "select number {itemNumber}",
+          "I'd like number {itemNumber}",
+          "tell me number {itemNumber}",
+          "result number {itemNumber}"
+        ],
+        "slots": [
+          {
+            "name": "itemNumber",
+            "type": "AMAZON.NUMBER"
+          }
+        ]
+      },
+      {
+        "name": "iSearchIntentPeople",
         "samples": [
           "find {firstName} {lastName}",
           "to find {firstName} {lastName}",
@@ -1577,6 +1664,18 @@
             "samples": [
               "{lastNameSpelled}"
             ]
+          }
+        ]
+      },
+      {
+        "name": "iSearchIntentTitle",
+        "samples": [
+          "who is {titleSearchPhrase}"
+        ],
+        "slots": [
+          {
+            "name": "titleSearchPhrase",
+            "type": "TITLE_SEARCH_PHRASE"
           }
         ]
       }

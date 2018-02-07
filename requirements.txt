@@ -1,0 +1,2 @@
+Flask-Ask git+git://github.com/mlsamuelson/flask-ask.git
+Zappa

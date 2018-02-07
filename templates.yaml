@@ -16,8 +16,7 @@ welcome_re: |
   </speak>
 
 welcome_card: |
-  Welcome to the ASU iSearch Directory. Search faculty, staff and students at Arizona State University by saying
-  something like "Find Michael Crow." Or say, "Spell name," to look someone up by spelling their name.
+  Welcome to the ASU iSearch Directory. Search faculty, staff and students at Arizona State University by saying something like "Find Michael Crow." Or say, "Spell name," to look someone up by spelling their name.
 
 people_results: |
   <speak>
@@ -25,8 +24,7 @@ people_results: |
   </speak>
 
 no_results: |
-  I didn't find any results for {{ first }} {{ last }}. Try saying "spell name" or ask me to find someone else by
-  saying something such as "Find Michael Crow."
+  I didn't find any results for {{ search_phrase }}. Try saying "spell name" or ask me to find someone else by saying something such as "Find Michael Crow."
 
 stop_bye: |
   Goodbye.
@@ -36,8 +34,6 @@ cancel_bye: |
 
 help_text: |
   <speak>
-    <p>With the {% include 'asu' %} {% include 'isearch' %} Directory you can search faculty staff and students from
-    Arizona State University. Search for an individual by saying something like "Find Michael Crow." If I fail to
-    recognize a name, try saying "Spell a name."</p>
+    <p>With the {% include 'asu' %} {% include 'isearch' %} Directory you can search faculty staff and students from Arizona State University. Search for an individual by saying something like "Find Michael Crow." If I fail to recognize a name, try saying "Spell a name."You might also try searching for people by title. Some examples would be asking me "Who is chief information officer?" Or "Who is systems analyst in Digital Transformation?"</p>
   </speak>
 
