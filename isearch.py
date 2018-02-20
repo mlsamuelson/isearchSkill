@@ -34,7 +34,7 @@ SESSION_SLOT_TITLE_SEARCH_PHRASE = 'slot_title_search_phrase'
 # Use the initial intent's name as the context value.
 SESSION_SEARCH_CONTEXT = 'search_context'
 
-RESPONSE_SIZE = 30
+RESPONSE_SIZE = 20
 PAGINATION_SIZE = 1
 
 # Define the Flask app.
@@ -181,6 +181,7 @@ def start_session():
 # result).
 @ask.launch  # User starts skill without any intent.
 def launch():
+    # logging.debug("INTENT: launch")
     """
     (QUESTION) Responds to the launch of the Skill with a welcome statement and a card.
     Templates:
@@ -214,6 +215,7 @@ def launch():
 #
 @ask.intent('iSearchIntentPeople')
 def get_isearch_people_results(firstName, lastName):
+    # logging.debug("INTENT: iSearchIntentPeople")
     """
     (QUESTION) Responds to name search.
     Templates:
@@ -318,10 +320,12 @@ def get_isearch_people_results(firstName, lastName):
 
 @ask.intent('iSearchIntentPeopleRepeat')
 def get_repeat_isearch_people_results():
+    # logging.debug("INTENT: iSearchIntentPeopleRepeat")
     return get_next_isearch_people_results(repeat=True)
 
 @ask.intent('iSearchIntentPeopleNext')
 def get_next_isearch_people_results(repeat=None):
+    # logging.debug("INTENT: iSearchIntentPeopleNext")
     """
     (QUESTION) Responds to advancing in people name search results.
     Templates:
@@ -421,6 +425,7 @@ def get_next_isearch_people_results(repeat=None):
 
 @ask.intent('iSearchIntentSpellName')
 def get_spell_isearch_names(firstNameSpelled, lastNameSpelled):
+    # logging.debug("INTENT: iSearchIntentSpellName")
     """
     (QUESTION) Responds to "spell name" utterance. Uses dialog delegation.
     Templates:
@@ -441,13 +446,14 @@ def get_spell_isearch_names(firstNameSpelled, lastNameSpelled):
 
 @ask.intent('iSearchIntentTitle')
 def get_isearch_title_results(titleSearchPhrase):
+    # logging.debug("INTENT: iSearchIntentTitle")
     """ 
     (QUESTION) Responds to a "who is [title + (optional) dept]" utterance with 
     a list of results and a card.
     Templates:
     * Initial statement: dynamic response
     * Display: ListTemplate1
-    * Reprompt statement: 'welcome_re'
+    * Reprompt statement: 'title_re'
     * No results: 'no_results'
     * Results: dynamic response
     * Card title: 'Results for your title search for [search phrase] ...'
@@ -472,13 +478,13 @@ def get_isearch_title_results(titleSearchPhrase):
     session.attributes[SESSION_SEARCH_CONTEXT] = 'iSearchIntentTitle'
     session.attributes[SESSION_SLOT_TITLE_SEARCH_PHRASE] = titleSearchPhrase
 
-    reprompt_text = render_template('welcome_re')
+    reprompt_text = render_template('title_re')
 
     # Do the search query if we have a search.
     if titleSearchPhrase:
         results = get_title_results(titleSearchPhrase)
     else:
-        return statement("{}".format(reprompt_text))
+        return question("{}".format(reprompt_text))
 
     if results == None:
         return question("{}".format(render_template('no_results', search_phrase=titleSearchPhrase)))
@@ -526,8 +532,8 @@ def get_isearch_title_results(titleSearchPhrase):
                 }
             }
         ]
-        # Build speech output. Only first 10 results for voice and card situations.
-        if (i < 10):
+        # Build speech output. Only first 5 results for voice and card situations.
+        if (i < 5):
             speech_output += "{}. {}".format(i + 1, results[i]['displayName'])  # Item number and displayName
             card_output += "{}. {}".format(i + 1, results[i]['displayName'])
             if (results[i]['primaryTitle']):  # primaryTitle if we have it
@@ -561,6 +567,7 @@ def get_isearch_title_results(titleSearchPhrase):
 
 @ask.intent('iSearchIntentItemDetail')
 def get_isearch_item_detail_intent(itemNumber = None):
+    # logging.debug("INTENT: iSearchIntentItemDetail")
     """ 
     (QUESTION) Responds to a numeric list item utterance or item touch.
     Templates:
@@ -673,6 +680,7 @@ def get_isearch_item_detail_intent(itemNumber = None):
 
 @ask.intent('iSearchIntentBackToResults')
 def get_isearch_back_to_results_intent():
+    # logging.debug("INTENT: iSearchIntentBackToResults")
     """
     Respond to utterances asking to go back to results listings.
     """
@@ -695,6 +703,7 @@ def get_isearch_back_to_results_intent():
 
 @ask.display_element_selected
 def element_selected():
+    # logging.debug("INTENT: display_element_selected")
     """
     All list template touch selections route through here. If selection is
     is spoken, this method is bypassed and goes straight to
@@ -721,18 +730,22 @@ def element_selected():
 
 @ask.intent('AMAZON.StopIntent')
 def stop():
+    # logging.debug("INTENT: StopIntent")
     return statement("Goodbye")
 
 @ask.intent('AMAZON.CancelIntent')
 def cancel():
+    # logging.debug("INTENT: CancelIntent")
     return statement("Goodbye")
 
 @ask.intent('AMAZON.HelpIntent')
 def help():
+    # logging.debug("INTENT: HelpIntent")
     return question(render_template('help_text'))
 
 @ask.intent('AMAZON.NavigateSettingsIntent')
 def handle_navigate_settings():
+    # logging.debug("INTENT: NavigateSettingsIntent")
     """
     (?) Handles the 'navigate settings' built-in intention.
     """
@@ -740,6 +753,7 @@ def handle_navigate_settings():
 
 @ask.intent('AMAZON.MoreIntent')
 def handle_more():
+    # logging.debug("INTENT: MoreIntent")
     """
     (?) Handles the 'more' built-in intention.
     """
@@ -747,6 +761,7 @@ def handle_more():
 
 @ask.intent('AMAZON.NextIntent')
 def handle_next():
+    # logging.debug("INTENT: NextIntent")
     """
     (?) Handles the 'next' built-in intention.
     """
@@ -754,6 +769,7 @@ def handle_next():
 
 @ask.intent('AMAZON.PageDownIntent')
 def handle_page_down():
+    # logging.debug("INTENT: PageDownIntent")
     """
     (?) Handles the 'page down' built-in intention.
     """
@@ -761,6 +777,7 @@ def handle_page_down():
 
 @ask.intent('AMAZON.PageUpIntent')
 def handle_page_up():
+    # logging.debug("INTENT: PageUpIntent")
     """
     (?) Handles the 'page up' built-in intention.
     """
@@ -768,6 +785,7 @@ def handle_page_up():
 
 @ask.intent('AMAZON.NoIntent')
 def handle_no():
+    # logging.debug("INTENT: NoIntent")
     """
     (?) Handles the 'no' built-in intention.
     """
@@ -775,6 +793,7 @@ def handle_no():
 
 @ask.intent('AMAZON.YesIntent')
 def handle_yes():
+    # logging.debug("INTENT: YesIntent")
     """
     (?) Handles the 'yes'  built-in intention.
     """
@@ -782,6 +801,7 @@ def handle_yes():
 
 @ask.intent('AMAZON.PreviousIntent')
 def handle_back():
+    # logging.debug("INTENT: PreviousIntent")
     """
     (?) Handles the 'go back!'  built-in intention.
     """
@@ -789,6 +809,7 @@ def handle_back():
 
 @ask.intent('AMAZON.StartOverIntent')
 def start_over():
+    # logging.debug("INTENT: StartOverIntent")
     """
     (QUESTION) Handles the 'start over!'  built-in intention.
     """
@@ -796,6 +817,7 @@ def start_over():
 
 @ask.session_ended
 def session_ended():
+    logging.debug("INTENT: session_ended")
     """
     Returns an empty for `session_ended`.
     .. warning::

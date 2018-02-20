@@ -26,6 +26,12 @@ people_results: |
 no_results: |
   I didn't find any results for {{ search_phrase }}. Try saying "spell name" or ask me to find someone else by saying something such as "Find Michael Crow."
 
+title_re: |
+  <speak>
+    <p>Start a question with, "who is", to look for people by title. To look an individual up by name say something such as, "Find Michael Crow." Or try spelling a name. Say, "Spell name,"
+    to get started.</p>
+  </speak>
+
 stop_bye: |
   Goodbye.
 
@@ -34,6 +40,6 @@ cancel_bye: |
 
 help_text: |
   <speak>
-    <p>With the {% include 'asu' %} {% include 'isearch' %} Directory you can search faculty staff and students from Arizona State University. Search for an individual by saying something like "Find Michael Crow." If I fail to recognize a name, try saying "Spell a name."You might also try searching for people by title. Some examples would be asking me "Who is chief information officer?" Or "Who is systems analyst in Digital Transformation?"</p>
+    <p>With the {% include 'asu' %} {% include 'isearch' %} Directory you can search faculty staff and students from Arizona State University. Search for an individual by saying something like "Find Michael Crow." If I fail to recognize a name, try saying "Spell a name." You might also want to try searching for people by title using the experimental title search. Some examples would be asking me "Who is chief information officer?" Or "Who is systems analyst in Digital Transformation?"</p>
   </speak>
 

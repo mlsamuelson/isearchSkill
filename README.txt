@@ -24,6 +24,7 @@ ROADMAP
   on the Show.
 - Touch activate phone numbers on the Show to initiate a call. (If ASK API allows.)
 - Touch display not always honoring line breaks in output. (documented Alexa issue)
+- Add ability to step-through results to list handling. Currently capped at first 20 results.
 COMPLETED
 - X Improve repeat queries during a single launch.
 - X Add "who is the ___" titleSearchIntent using ListTemplate1 display for text lists with optional images.
